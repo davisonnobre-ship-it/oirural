@@ -1299,22 +1299,48 @@ footer p{font-size:14.5px;line-height:1.55;color:#b9d2b9}
     camarao: '🦐 *Dia do Camarão — OI RURAL*\nToda quinta-feira, tudo sobre a carcinicultura cearense: viveiros, mercado e tecnologia.\n👉 ' + SITE + '#camarao\nAcompanhe: @revistaagricola_',
     cotacoes: '📈 *Cotações do dia — OI RURAL*\nMilho, soja, arroz, bovinos e mais 17 produtos com valor, data e fonte. Sem valor confirmado, aparece como “a confirmar”.\n👉 ' + SITE + '#cotacoes\nAcompanhe: @revistaagricola_'
   };
-  /* Compartilha com imagem anexada quando o aparelho permite (Web Share
-     API com arquivo); sem suporte, manda o texto completo com o link —
-     o WhatsApp monta a prévia a partir do link. */
+  /* Busca o banner da matéria e converte pra JPEG com canvas (os banners
+     são WebP, que o WhatsApp nem sempre exibe ao receber pelo
+     compartilhamento do sistema; em JPEG a foto chega certinha). */
+  function imgToJpegFile(src, done){
+    fetch(src).then(function(r){ if(!r.ok) throw new Error('img'); return r.blob(); }).then(function(blob){
+      var url = URL.createObjectURL(blob);
+      var im = new Image();
+      im.onload = function(){
+        try{
+          var cv = document.createElement('canvas');
+          cv.width = im.naturalWidth; cv.height = im.naturalHeight;
+          var cx = cv.getContext('2d');
+          cx.fillStyle = '#ffffff'; cx.fillRect(0, 0, cv.width, cv.height);
+          cx.drawImage(im, 0, 0);
+          URL.revokeObjectURL(url);
+          if(!cv.toBlob){ done(null); return; }
+          cv.toBlob(function(jb){
+            if(!jb){ done(null); return; }
+            var name = ((src.split('/').pop() || 'oi-rural').split('?')[0]).replace(/\.[a-z0-9]+$/i, '') + '.jpg';
+            var file = null;
+            try{ file = new File([jb], name, {type: 'image/jpeg'}); }catch(e){}
+            done(file);
+          }, 'image/jpeg', 0.92);
+        }catch(e){ done(null); }
+      };
+      im.onerror = function(){ URL.revokeObjectURL(url); done(null); };
+      im.src = url;
+    }).catch(function(){ done(null); });
+  }
+  /* Compartilha pelo sistema com a FOTO da matéria anexada + o texto
+     completo, quando o aparelho permite (Web Share API com arquivo);
+     sem suporte a arquivos, cai pro link wa.me com o texto completo. */
   function doShare(data){
     function waFallback(){ window.open('https://wa.me/?text='+encodeURIComponent(data.text), '_blank'); }
     if(!navigator.share){ waFallback(); return; }
     function textShare(){ navigator.share({title: data.title || 'OI RURAL', text: data.text}).catch(function(){}); }
-    if(data.img && navigator.canShare){
-      fetch(data.img).then(function(r){ if(!r.ok) throw new Error('img'); return r.blob(); }).then(function(blob){
-        var name = (data.img.split('/').pop() || 'oi-rural.jpg').split('?')[0];
-        var file = null;
-        try{ file = new File([blob], name, {type: blob.type || 'image/jpeg'}); }catch(e){}
+    if(data.img && navigator.canShare && window.File){
+      imgToJpegFile(data.img, function(file){
         if(file && navigator.canShare({files:[file]})){
           navigator.share({title: data.title || 'OI RURAL', text: data.text, files:[file]}).catch(function(err){ if(!err || err.name !== 'AbortError') textShare(); });
         } else textShare();
-      }).catch(function(){ textShare(); });
+      });
     } else textShare();
   }
   function share(kind){
