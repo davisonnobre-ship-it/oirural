@@ -96,6 +96,11 @@ section.blk{padding:46px 0 6px}
 .tag-gold{background:var(--gold);color:#231a00}
 /* feed de notícias */
 .feed{display:grid;gap:16px}
+/* Notícias do Dia: só as 3 mais recentes aparecem na seção. Os demais
+   cards continuam no HTML — a rotina automática segue postando no topo
+   (a nova matéria entra como 1ª e aparece sozinha entre as 3) e o script
+   do arquivo "Todas as notícias" continua recebendo TODAS as matérias. */
+#feedDia > .feed-card:nth-of-type(n+4){display:none}
 .feed-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);display:grid;grid-template-columns:180px 1fr}
 .feed-img{min-height:150px;background:repeating-linear-gradient(45deg,#e7efe4,#e7efe4 12px,#dfe9dc 12px,#dfe9dc 24px);display:flex;align-items:center;justify-content:center;color:var(--muted);font-weight:700;font-size:13px;text-align:center;padding:14px}
 .feed-img:has(img){padding:0;overflow:hidden}
@@ -1904,30 +1909,31 @@ footer p{font-size:14.5px;line-height:1.55;color:#b9d2b9}
           </div>
         </article>
       </div>
+      <div style="margin-top:18px;text-align:center"><a class="btn btn-green" href="#noticias-semana">Ver todas as notícias →</a></div>
     </div>
   </section>
 
-  <!-- NOTÍCIAS DA SEMANA -->
+  <!-- TODAS AS NOTÍCIAS -->
   <section class="blk" id="noticias-semana">
     <div class="wrap">
       <div class="sec-head rv">
-        <div><span class="tag">Arquivo do portal · fica tudo no site</span><h2 style="margin-top:8px" data-words>Notícias <em>da semana</em></h2><p>Tudo que é publicado no portal fica salvo aqui, em ordem de postagem — da mais recente pra mais antiga. A matéria entrou, ficou no site: nada é apagado quando o dia vira.</p></div>
+        <div><span class="tag">Arquivo do portal · fica tudo no site</span><h2 style="margin-top:8px" data-words>Todas as <em>notícias</em></h2><p>Tudo que é publicado no portal fica salvo aqui, em ordem de postagem — da mais recente pra mais antiga. A matéria entrou, ficou no site: nada é apagado quando o dia vira.</p></div>
       </div>
       <!--
         ============================================================
-        ARQUIVO DA SEMANA + ROTINA DE POSTAGEM (regra do portal)
+        TODAS AS NOTÍCIAS (ARQUIVO) + ROTINA DE POSTAGEM (regra do portal)
         - Toda matéria publicada entra no feed "Notícias do Dia" (#feedDia).
-        - A seção da semana (#feedSemana) é montada AUTOMATICAMENTE pelo
-          script a partir do feed do dia: todas as matérias ficam salvas
+        - A seção Todas as notícias (#feedSemana) é montada AUTOMATICAMENTE
+          pelo script a partir do feed do dia: todas as matérias ficam salvas
           aqui, em ordem de postagem, e nada sai do site.
         - Rotina: ajustes e fila de aprovação das 4h às 23h; fora desse
           horário, a publicação segue automática, 24 horas.
-        Pra publicar, edite SOMENTE o feed do dia — a semana se atualiza
-        sozinha, sem precisar repetir a matéria aqui.
+        Pra publicar, edite SOMENTE o feed do dia — o arquivo se atualiza
+        sozinho, sem precisar repetir a matéria aqui.
         ============================================================
       -->
-      <div class="feed" id="feedSemana" aria-label="Notícias da semana"></div>
-      <div class="news-note rv" style="margin-top:16px"><strong>Quer ver tudo de uma vez?</strong> As postagens do dia e da semana ficam reunidas na página inicial, em formato de feed. <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-green btn-small" id="verTodasBtn" type="button">Ver todas as postagens</button><button class="btn btn-outline btn-small" id="copyBtn" type="button">Copiar convite pros grupos</button></div></div>
+      <div class="feed" id="feedSemana" aria-label="Todas as notícias"></div>
+      <div class="news-note rv" style="margin-top:16px"><strong>Quer ver tudo de uma vez?</strong> As postagens do dia e de todos os dias anteriores ficam reunidas na página inicial, em formato de feed. <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-green btn-small" id="verTodasBtn" type="button">Ver todas as postagens</button><button class="btn btn-outline btn-small" id="copyBtn" type="button">Copiar convite pros grupos</button></div></div>
     </div>
   </section>
 
@@ -2127,7 +2133,7 @@ footer p{font-size:14.5px;line-height:1.55;color:#b9d2b9}
       </div>
       <div>
         <h4>Portal</h4>
-        <a href="#noticias-dia">Notícias do dia</a><a href="#noticias-semana">Notícias da semana</a><a href="#cotacoes" data-nav="cotacoes">Cotações</a><a href="#clima" data-nav="clima">Previsão do Tempo</a><a href="#camarao">Dia do Camarão</a>
+        <a href="#noticias-dia">Notícias do dia</a><a href="#noticias-semana">Todas as notícias</a><a href="#cotacoes" data-nav="cotacoes">Cotações</a><a href="#clima" data-nav="clima">Previsão do Tempo</a><a href="#camarao">Dia do Camarão</a>
       </div>
       <div>
         <h4>Acompanhe</h4>
@@ -2558,8 +2564,8 @@ footer p{font-size:14.5px;line-height:1.55;color:#b9d2b9}
   try{ var dia = new Intl.DateTimeFormat('pt-BR',{weekday:'short', timeZone:'America/Fortaleza'}).format(new Date()); if(/qui/i.test(dia)) document.body.classList.add('is-quinta'); }
   catch(e){ if(new Date().getDay()===4) document.body.classList.add('is-quinta'); }
 
-  /* ---------- arquivo da semana (automático) ----------
-     Toda matéria do feed do dia é copiada pra seção Notícias da Semana,
+  /* ---------- arquivo "Todas as notícias" (automático) ----------
+     Toda matéria do feed do dia é copiada pra seção Todas as Notícias,
      na mesma ordem de postagem (mais recente primeiro). Assim, tudo que
      é publicado fica salvo no site pra sempre, sem editar duas vezes. */
   var feedDiaEl = document.getElementById('feedDia'), feedSemanaEl = document.getElementById('feedSemana');
@@ -2722,7 +2728,7 @@ footer p{font-size:14.5px;line-height:1.55;color:#b9d2b9}
   if(verTodasBtn) verTodasBtn.addEventListener('click', function(){
     var dia = document.getElementById('noticias-dia');
     if(dia) dia.scrollIntoView({behavior: reduce?'auto':'smooth', block:'start'});
-    showToast('Aqui estão todas as postagens: as do dia e as da semana 📲');
+    showToast('Aqui estão todas as postagens: as do dia e as anteriores 📲');
   });
   var copyBtn = document.getElementById('copyBtn');
   if(copyBtn) copyBtn.addEventListener('click', function(){
